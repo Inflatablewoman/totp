@@ -35,6 +35,9 @@ func BarcodeImage(label string, secretkey []byte, opt *Options) ([]byte, error) 
 		"digits": {strconv.Itoa(int(opt.Digits))},
 		"period": {strconv.Itoa(int(opt.TimeStep / time.Second))},
 	}
+	if len(opt.Issuer) > 0 {
+		params.Add("issuer", opt.Issuer)
+	}
 
 	u.RawQuery = params.Encode()
 
@@ -55,6 +58,7 @@ type Options struct {
 	TimeStep time.Duration
 	Digits   uint8
 	Hash     func() hash.Hash
+	Issuer   string
 }
 
 // NewOptions constructs a pre-configured Options. The returned Options' uses
