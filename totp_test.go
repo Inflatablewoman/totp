@@ -115,3 +115,15 @@ func TestVarious(t *testing.T) {
 		}
 	}
 }
+
+func TestGetUserCode(t *testing.T) {
+	secretKey := []byte("youCanTrustMe")
+	code, err := GetUserCode(secretKey, nil)
+	if err != nil {
+		t.Errorf("GetUserCode failed: %s", err.Error())
+	}
+	auth := Authenticate(secretKey, code, nil)
+	if !auth {
+		t.Errorf("GetUserCode didn't authenticate correctly.")
+	}
+}

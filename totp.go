@@ -147,3 +147,42 @@ func Authenticate(secretKey []byte, userCode string, o *Options) bool {
 
 	return false
 }
+
+// GetUserCode returns the current TOTP userCode taking the key from secretKey and
+// other options from o. If o is nil, then DefaultOptions is used instead.
+func GetUserCode(secretKey []byte, o *Options) (string, error) {
+	if o == nil {
+		o = DefaultOptions
+	}
+
+	t := o.Time().Unix() / int64(o.TimeStep/time.Second)
+	var tbuf [8]byte
+
+	hm := hmac.New(o.Hash, secretKey)
+	var hashbuf []byte
+	tbuf[0] = byte(t >> 56)
+	tbuf[1] = byte(t >> 48)
+	tbuf[2] = byte(t >> 40)
+	tbuf[3] = byte(t >> 32)
+	tbuf[4] = byte(t >> 24)
+	tbuf[5] = byte(t >> 16)
+	tbuf[6] = byte(t >> 8)
+	tbuf[7] = byte(t)
+
+	hm.Reset()
+	hm.Write(tbuf[:])
+	hashbuf = hm.Sum(hashbuf[:0])
+
+	offset := hashbuf[len(hashbuf)-1] & 0xf
+	truncatedHash := hashbuf[offset:]
+
+	code := int64(truncatedHash[0])<<24 |
+		int64(truncatedHash[1])<<16 |
+		int64(truncatedHash[2])<<8 |
+		int64(truncatedHash[3])
+
+	code &= 0x7FFFFFFF
+	code %= digit_power[int(o.Digits)]
+
+	return fmt.Sprintf("%d", code), nil
+}
