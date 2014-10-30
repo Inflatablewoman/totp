@@ -184,5 +184,5 @@ func GetUserCode(secretKey []byte, o *Options) (string, error) {
 	code &= 0x7FFFFFFF
 	code %= digit_power[int(o.Digits)]
 
-	return fmt.Sprintf("%d", code), nil
+	return fmt.Sprintf("%06d", code), nil
 }
